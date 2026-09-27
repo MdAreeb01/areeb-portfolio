@@ -1,6 +1,6 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { RoundedBox, Text } from "@react-three/drei";
-import { Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef } from "react";
 import * as THREE from "three";
 import { FadeIn } from "./FadeIn";
 import { ContactButton } from "./Buttons";
@@ -159,10 +159,10 @@ function DataGlobe() {
         />
       </points>
 
-      /* =====================================================
+      {/* =====================================================
         LATITUDE LINES
         Horizontal rings around the globe.
-        ===================================================== */
+        ===================================================== */}
 
       {[-0.8, -0.4, 0, 0.4, 0.8].map((y, index) => {
         const ringRadius = Math.sqrt(
@@ -198,10 +198,10 @@ function DataGlobe() {
         );
       })}
 
-      /* =====================================================
+      {/* =====================================================
         LONGITUDE LINES
         Vertical rings around the globe.
-        ===================================================== */
+        ===================================================== */}
 
       {[
         0,
@@ -739,13 +739,12 @@ function FloatingCard({
 function DataScene({
   mouseX,
   mouseY,
-  scaleMultiplier,
 }: {
   mouseX: React.MutableRefObject<number>;
   mouseY: React.MutableRefObject<number>;
-  scaleMultiplier: number;
 }) {
   const scene = useRef<THREE.Group>(null);
+  const scaleMultiplier = useResponsiveSceneScale();
  
   useFrame((state) => {
     if (!scene.current) return;
@@ -854,7 +853,7 @@ function DataScene({
       <group
         position={[
           SCENE_X,
-          SCENE_Y + PLATFORM_Y,
+          SCENE_Y + PLATFORM_Y * scaleMultiplier,
           SCENE_Z
         ]}
         scale={SCENE_SCALE * scaleMultiplier}
@@ -869,12 +868,14 @@ function DataScene({
    RESPONSIVE SCALE
    Shrinks the whole 3D composition (globe, cards, platform, icons —
    uniformly, together) so nothing clips outside the camera's view on
-   narrow/tall viewports. Because every part scales by the same factor,
-   this can never introduce new overlap between elements — it's a pure
-   zoom of the same composition that already doesn't overlap at 100%.
-   The factor is derived from the actual camera distance/FOV and the
-   canvas's aspect ratio, so it self-adjusts correctly for any viewport
-   instead of relying on a handful of guessed breakpoint values.
+   narrow viewports. Because every part scales by the same factor, this
+   can never introduce new overlap between elements — it's a pure zoom of
+   the same composition that already doesn't overlap at 100%.
+
+   The factor is derived from the canvas's REAL size (react-three-fiber
+   reports it, so it follows dvh/svh changes, browser toolbars, rotation and
+   any layout change) together with the camera distance/FOV, instead of
+   guessing the canvas size from window.innerWidth/innerHeight.
    ============================================================ */
 
 // Mirrors the <Canvas> camera below (position z / fov).
@@ -884,41 +885,27 @@ const HALF_TAN_FOV = Math.tan((35 * Math.PI) / 180 / 2);
 // units: the outer cards' center distance plus their own half-width.
 const CONTENT_HALF_WIDTH = CARD_DISTANCE * 1.05 + 1.32 / 2;
 
+// Keep a little air between the outermost card and the canvas edge.
+const FIT_SAFETY = 0.91;
+// Never shrink the scene below this fraction of its tuned size.
+const MIN_SCENE_FACTOR = 0.3;
+// Below this canvas width the scene is additionally capped, so tablets never
+// get a larger composition than the one tuned for them.
+const FULL_SIZE_MIN_WIDTH = 1024;
+const TABLET_MAX_FACTOR = 0.82;
+
 function useResponsiveSceneScale() {
-  const [factor, setFactor] = useState(1);
+  const width = useThree((state) => state.size.width);
+  const height = useThree((state) => state.size.height);
 
-  useEffect(() => {
-    function update() {
-      const w = window.innerWidth;
-      const h = window.innerHeight;
+  if (!width || !height) return 1;
 
-      // Baseline "how big should this feel" tiers — kept as an upper
-      // bound so the scene never renders LARGER than originally tuned,
-      // even on a viewport with frustum room to spare.
-      let base = 1;
-      if (w < 640) base = 0.6;
-      else if (w < 1024) base = 0.82;
+  const visibleHalfWidth = CAMERA_DISTANCE * HALF_TAN_FOV * (width / height);
+  const maxByFit =
+    (visibleHalfWidth * FIT_SAFETY) / (CONTENT_HALF_WIDTH * SCENE_SCALE);
+  const cap = width < FULL_SIZE_MIN_WIDTH ? TABLET_MAX_FACTOR : 1;
 
-      // Approximates the <Canvas> element's own sizing
-      // (`w-[min(96vw,1120px)]`, ~95% of viewport height) so this math
-      // matches what's actually on screen.
-      const canvasW = Math.min(w * 0.96, 1120);
-      const canvasH = h * 0.95;
-      const aspect = canvasW / canvasH;
-      const visibleHalfWidth = CAMERA_DISTANCE * HALF_TAN_FOV * aspect;
-
-      const safety = 0.96;
-      const maxByFit = (visibleHalfWidth * safety) / (CONTENT_HALF_WIDTH * SCENE_SCALE);
-
-      setFactor(Math.max(0.32, Math.min(base, maxByFit)));
-    }
-
-    update();
-    window.addEventListener("resize", update);
-    return () => window.removeEventListener("resize", update);
-  }, []);
-
-  return factor;
+  return Math.max(MIN_SCENE_FACTOR, Math.min(cap, maxByFit));
 }
 
 /* ============================================================
@@ -964,7 +951,6 @@ function WebGLContextRecovery() {
 export function HeroSection() {
   const mouseX = useRef(0);
   const mouseY = useRef(0);
-  const responsiveScale = useResponsiveSceneScale();
  
   const updateMouse = (event: React.PointerEvent<HTMLElement>) => {
     // Touch drags (e.g. scrolling past the hero) shouldn't drive the
@@ -993,7 +979,7 @@ export function HeroSection() {
  
   return (
     <section
-      className="relative h-screen flex flex-col"
+      className="hero-viewport relative flex flex-col"
       style={{
         overflowX: "clip",
         backgroundColor: "#0C0C0C",
@@ -1003,12 +989,12 @@ export function HeroSection() {
     >
       {/* Navigation */}
       <FadeIn as="nav" delay={0} y={-20}>
-        <ul className="relative z-40 flex justify-between px-4 sm:px-6 md:px-10 pt-2 md:pt-3 pb-0 list-none">
+        <ul className="relative z-40 flex justify-between px-4 sm:px-6 md:px-10 pt-1 md:pt-2 pb-0 list-none">
           {links.map((l) => (
             <li key={l}>
               <a
                 href={`#${l.toLowerCase()}`}
-                className="text-[#D7E2EA] font-medium uppercase tracking-wide sm:tracking-wider text-[11px] sm:text-sm md:text-lg lg:text-[1.4rem] transition-opacity duration-200 hover:opacity-70"
+                className="inline-block py-2 text-[#D7E2EA] font-medium uppercase tracking-wide sm:tracking-wider text-xs sm:text-sm md:text-lg lg:text-[1.4rem] transition-opacity duration-200 hover:opacity-70"
               >
                 {l}
               </a>
@@ -1020,7 +1006,7 @@ export function HeroSection() {
       {/* Heading — sits behind the 3D scene */}
       <div className="relative z-10 overflow-hidden pointer-events-none">
         <FadeIn delay={0.15} y={40}>
-          <h1 className="hero-heading w-full font-black uppercase tracking-tight leading-none whitespace-nowrap text-center text-[14vw] sm:text-[15vw] md:text-[16vw] lg:text-[16vw] -mt-2 sm:-mt-5 md:-mt-6 lg:-mt-8">
+          <h1 className="hero-heading w-full font-black uppercase tracking-tight leading-none whitespace-nowrap text-center text-[length:min(14vw,40svh)] sm:text-[length:min(15vw,40svh)] md:text-[length:min(16vw,40svh)] -mt-2 sm:-mt-5 md:-mt-6 lg:-mt-8">
             Hi, I&apos;m Areeb
           </h1>
         </FadeIn>
@@ -1034,14 +1020,15 @@ export function HeroSection() {
           absolute
           inset-x-0
           top-[5%]
-          bottom-[-0%]
+          bottom-[8%]
+          xl:bottom-0
           z-20
           flex
           items-center
           justify-center
         "
       >
-        <div className="relative w-[min(96vw,1120px)] h-full">
+        <div className="relative w-[min(100%,max(1120px,124svh))] h-full">
           <Canvas
             className="!w-full !h-full"
             style={{
@@ -1076,11 +1063,7 @@ export function HeroSection() {
  
             <pointLight position={[-0.4, 1.2, 1.5]} intensity={1.8} distance={5} />
  
-            <DataScene
-              mouseX={mouseX}
-              mouseY={mouseY}
-              scaleMultiplier={responsiveScale}
-            />
+            <DataScene mouseX={mouseX} mouseY={mouseY} />
           </Canvas>
         </div>
       </FadeIn>

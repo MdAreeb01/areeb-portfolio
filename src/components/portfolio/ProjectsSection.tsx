@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import {
   motion,
+  useMotionValue,
   useScroll,
   useTransform,
   useReducedMotion,
 } from "framer-motion";
+import type { MotionValue } from "framer-motion";
 import type { MotionStyle, Transition } from "framer-motion";
 import { FadeIn } from "./FadeIn";
 import { LiveProjectButton } from "./Buttons";
@@ -53,6 +55,17 @@ const projects = [
 }>;
 
 const RADIUS = "rounded-[40px] sm:rounded-[50px] md:rounded-[60px]";
+
+// Thumbnails are far smaller than the card on phones, so their corner radius
+// follows the viewport instead of using the card's radius (which would turn a
+// 70px-tall thumbnail into a pill). Reaches the original 60px from ~1000px up.
+const IMAGE_RADIUS = "rounded-[clamp(16px,6vw,60px)]";
+
+// The sticky "deck of cards" effect only makes sense once there is room for it.
+// Below this width cards simply follow normal document flow.
+const STACK_QUERY = "(min-width: 768px)";
+// Vertical step between stacked cards, in px (applied only when stacked).
+const STACK_OFFSET = 22;
 
 const HOVER_TRANSITION: Transition = {
   duration: 0.35,
@@ -119,6 +132,27 @@ function useCanHover() {
   return canHover;
 }
 
+/**
+ * 1 while the stacked/sticky layout is active (>= md), otherwise 0.
+ * A MotionValue (not React state) so toggling never re-renders the cards and
+ * the server/first-client render are identical.
+ */
+function useStackEnabled(): MotionValue<number> {
+  const enabled = useMotionValue(1);
+
+  useEffect(() => {
+    const mq = window.matchMedia(STACK_QUERY);
+    const update = () => enabled.set(mq.matches ? 1 : 0);
+
+    update();
+    mq.addEventListener("change", update);
+
+    return () => mq.removeEventListener("change", update);
+  }, [enabled]);
+
+  return enabled;
+}
+
 function ParallaxImage({
   src,
   alt,
@@ -154,7 +188,7 @@ function ParallaxImage({
       ref={ref}
       initial="rest"
       whileHover={interactive ? "hover" : "rest"}
-      className={`relative overflow-hidden ${RADIUS} ${wrapperClassName}`}
+      className={`relative overflow-hidden ${IMAGE_RADIUS} ${wrapperClassName}`}
       style={wrapperStyle ?? {}}
     >
       <motion.img
@@ -191,6 +225,7 @@ function Card({
   index,
   total,
   progress,
+  stackEnabled,
   interactive,
   reduceMotion,
 }: {
@@ -198,19 +233,29 @@ function Card({
   index: number;
   total: number;
   progress: ReturnType<typeof useScroll>["scrollYProgress"];
+  stackEnabled: MotionValue<number>;
   interactive: boolean;
   reduceMotion: boolean;
 }) {
   const targetScale = 1 - (total - 1 - index) * 0.03;
 
-  const scale = useTransform(
+  const stackScale = useTransform(
     progress,
     [index / total, 1],
     [1, targetScale],
   );
 
+  // Cards only shrink as the deck builds up; in normal flow (phones) they stay 1.
+  const scale = useTransform(
+    [stackScale, stackEnabled],
+    ([s, enabled]: number[]) => (enabled ? s : 1),
+  );
+
   return (
-    <div className="relative flex items-start justify-center h-auto md:h-[78vh] md:sticky md:top-12">
+    // Normal flow with a gap on phones. From md up each wrapper is as tall as its
+    // card (no reserved viewport height), sticks under the top edge, and the next
+    // one overlaps it slightly so the following card peeks over the one before.
+    <div className="relative flex items-start justify-center mb-5 sm:mb-6 last:mb-0 md:mb-0 md:sticky md:top-12 md:not-last:-mb-[clamp(2.5rem,9svh,5rem)]">
       <motion.div
         initial="rest"
         whileHover={interactive ? "hover" : "rest"}
@@ -218,19 +263,27 @@ function Card({
         transition={HOVER_TRANSITION}
         style={{
           scale,
-          top: `${index * 22}px`,
           backgroundColor: "#0C0C0C",
           zIndex: index + 1,
+          // Consumed by `md:top-[var(--stack-offset)]` below, so the offset is only
+          // applied when the deck is stacked (never on phones).
+          ...({ "--stack-offset": `${index * STACK_OFFSET}px` } as MotionStyle),
         }}
-        className={`project-card relative w-full max-w-6xl ${RADIUS} border-2 border-[#D7E2EA] p-4 sm:p-5 md:p-6`}
+        // On short viewports the card is narrowed (it is ~1.5:1) so a pinned card
+        // never ends up taller than the screen; on ordinary screens this is 72rem.
+        className={`relative w-full max-w-6xl md:max-w-[min(85rem,calc((100svh-6rem)*1.80))] ${
+          index === 2
+            ? "md:top-[calc(var(--stack-offset)+64px)]"
+            : "md:top-[var(--stack-offset)]"
+        } ${RADIUS} border-2 border-[#D7E2EA] p-4 sm:p-5 md:p-6`}
       >
         {/* HEADER */}
         <div className="flex flex-wrap items-center justify-between gap-3 sm:gap-4">
-          <div className="flex items-center gap-3 sm:gap-5">
+          <div className="flex min-w-0 items-center gap-3 sm:gap-5">
             <motion.span
               variants={numberHoverVariants}
               transition={HOVER_TRANSITION}
-              className="hero-heading font-black leading-none"
+              className="hero-heading font-black leading-none shrink-0"
               style={{
                 fontSize: "clamp(2.8rem, 8vw, 110px)",
               }}
@@ -238,7 +291,7 @@ function Card({
               {project.n}
             </motion.span>
 
-            <div className="flex flex-col gap-1">
+            <div className="flex min-w-0 flex-col gap-1">
               <span className="text-[#D7E2EA]/60 uppercase tracking-widest text-[10px] sm:text-xs font-light">
                 {project.category}
               </span>
@@ -312,6 +365,7 @@ export function ProjectsSection() {
   });
 
   const canHover = useCanHover();
+  const stackEnabled = useStackEnabled();
   const reduceMotion = useReducedMotion() ?? false;
   const interactive = canHover && !reduceMotion;
 
@@ -319,7 +373,7 @@ export function ProjectsSection() {
     <section
       id="projects"
       ref={ref}
-      className="relative z-10 -mt-10 sm:-mt-12 md:-mt-14 rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] px-5 sm:px-8 md:px-10 pt-12 sm:pt-16 md:pt-20 pb-16 sm:pb-20 md:pb-48"
+      className="relative z-10 -mt-10 sm:-mt-12 md:-mt-14 rounded-t-[40px] sm:rounded-t-[50px] md:rounded-t-[60px] px-5 sm:px-8 md:px-10 pt-12 sm:pt-16 md:pt-20 pb-12 sm:pb-16 md:pb-20"
       style={{
         backgroundColor: "#0C0C0C",
       }}
@@ -343,6 +397,7 @@ export function ProjectsSection() {
             index={i}
             total={projects.length}
             progress={scrollYProgress}
+            stackEnabled={stackEnabled}
             interactive={interactive}
             reduceMotion={reduceMotion}
           />

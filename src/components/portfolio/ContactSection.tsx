@@ -192,7 +192,7 @@ export function ContactSection() {
   return (
     <section
       id="contact"
-      className="relative scroll-mt-0 overflow-hidden rounded-t-[40px] px-5 pb-20 pt-52 sm:rounded-t-[50px] sm:px-8 sm:pb-24 sm:pt-56 md:rounded-t-[60px] md:px-10 md:pb-32 md:pt-64"
+      className="relative scroll-mt-0 overflow-hidden rounded-t-[40px] px-5 pb-20 pt-32 sm:rounded-t-[50px] sm:px-8 sm:pb-24 sm:pt-40 md:rounded-t-[60px] md:px-10 md:pb-32 md:pt-64"
       style={{ backgroundColor: "#0C0C0C" }}
     >
       <div className="mx-auto flex max-w-5xl flex-col items-center gap-12 sm:gap-16 md:gap-20">

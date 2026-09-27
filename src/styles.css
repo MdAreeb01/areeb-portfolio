@@ -204,16 +204,13 @@
   }
 }
 
-.project-card {
-  top: 0;
-}
-
-@media (min-width: 768px) {
-  .project-card:nth-child(2) {
-    top: 22px;
-  }
-
-  .project-card:nth-child(3) {
-    top: 44px;
-  }
+/*
+ * Hero height: 100svh keeps the whole hero (including the bottom text and
+ * Contact button) inside the visible area on mobile browsers whose toolbars
+ * make 100vh taller than what is actually on screen. 100vh is the fallback
+ * for browsers without small-viewport units.
+ */
+.hero-viewport {
+  min-height: 100vh;
+  min-height: 100svh;
 }

@@ -113,13 +113,13 @@ export function ServicesSection() {
                   aria-expanded={isOpen}
                   aria-controls={panelId}
                   id={triggerId}
-                  className="w-full flex items-center justify-between gap-4 sm:gap-6 md:gap-10 py-8 sm:py-10 md:py-12 text-left bg-transparent border-none cursor-pointer focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-4 focus-visible:ring-[#0C0C0C]/40 rounded-sm"
+                  className="w-full flex items-center justify-between gap-4 sm:gap-6 md:gap-10 py-8 sm:py-10 md:py-12 text-left bg-transparent border-none cursor-pointer touch-manipulation [-webkit-tap-highlight-color:transparent] focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-4 focus-visible:ring-[#0C0C0C]/40 rounded-sm"
                 >
                   <div className="flex items-center gap-5 sm:gap-8 md:gap-12 min-w-0">
                     <motion.span
                       variants={numberVariants}
                       transition={MICRO_TRANSITION}
-                      className="font-black leading-none shrink-0"
+                      className="font-black leading-none shrink-0 max-md:w-[1.25em]"
                       style={{ color: "#0C0C0C", fontSize: "clamp(3rem, 10vw, 140px)" }}
                     >
                       {s.n}
@@ -127,7 +127,7 @@ export function ServicesSection() {
                     <motion.h3
                       variants={titleVariants}
                       transition={MICRO_TRANSITION}
-                      className="font-medium uppercase leading-none"
+                      className="min-w-0 font-medium uppercase leading-none"
                       style={{ color: "#0C0C0C", fontSize: "clamp(1rem, 2.2vw, 2.1rem)" }}
                     >
                       {s.name}
@@ -166,14 +166,14 @@ export function ServicesSection() {
                         animate={{ y: 0, opacity: 1 }}
                         exit={{ y: -8, opacity: 0 }}
                         transition={{ duration: 0.3, ease: "easeOut" }}
-                        className="pb-8 sm:pb-10 md:pb-12 pl-16 sm:pl-24 md:pl-36 pr-2 md:pr-10"
+                        className="pb-8 sm:pb-10 md:pb-12 pl-[calc(1.25*clamp(3rem,10vw,140px)_+_1.25rem)] sm:pl-[calc(1.25*clamp(3rem,10vw,140px)_+_2rem)] md:pl-36 pr-2 md:pr-10"
                       >
                         <p
                           className="font-light leading-relaxed max-w-2xl"
                           style={{
                             color: "#0C0C0C",
                             opacity: 0.6,
-                            fontSize: "clamp(0.85rem, 1.6vw, 1.25rem)",
+                            fontSize: "clamp(0.9375rem, 1.6vw, 1.25rem)",
                           }}
                         >
                           {s.d}
@@ -197,7 +197,7 @@ export function ServicesSection() {
                               style={{
                                 color: "#0C0C0C",
                                 opacity: 0.75,
-                                fontSize: "clamp(0.85rem, 1.4vw, 1.1rem)",
+                                fontSize: "clamp(0.9rem, 1.4vw, 1.1rem)",
                               }}
                             >
                               {s.tools.join(" · ")}
