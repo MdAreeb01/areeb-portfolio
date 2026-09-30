@@ -10,7 +10,7 @@ and a polished 3D-inspired presentation.
 
 ## 🌐 Live Website
 
-**Portfolio:** https://its-areebarchives.vercel.app/
+**[Check Portfolio](https://its-areebarchives.vercel.app/)**
 
 ## ✨ Highlights
 
@@ -65,7 +65,7 @@ A customer churn prediction and retention intelligence application
 featuring machine-learning-based churn prediction and AI-assisted
 retention insights.
 
-**Live:** https://retainai-churn-intelligence.streamlit.app/
+**[Live Demo](https://retainai-churn-intelligence.streamlit.app/)**
 
 #### 02 --- Travel Management Analysis Dashboard
 
@@ -74,7 +74,7 @@ retention insights.
 A Power BI data analytics project focused on travel-management data,
 dashboards, visual analysis, and business insights.
 
-**GitHub:** https://github.com/MdAreeb01/Travel-Management-Analysis-
+**[GitHub Repo](https://github.com/MdAreeb01/Travel-Management-Analysis-)**
 
 #### 03 --- Human Resource Analysis Dashboard
 
@@ -83,21 +83,19 @@ dashboards, visual analysis, and business insights.
 A Power BI dashboard project focused on HR analytics, employee-related
 metrics, recruitment analysis, and visual business insights.
 
-**GitHub:** https://github.com/MdAreeb01/Human-Resource-Analysis
+**[GitHub Repo](https://github.com/MdAreeb01/Human-Resource-Analysis)**
 
 ### Contact
 
-Provides direct contact and social links for:
-
--   Email
--   Instagram
--   LinkedIn
--   GitHub
+- Email
+- GitHub
+- Instagram
+- Linkedin
 
 The contact cards include responsive layouts, hover effects, and subtle
 3D pointer interactions on devices with a fine pointer.
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 -   React
 -   TypeScript
@@ -249,10 +247,12 @@ learning, AI, dashboards, and practical application development.
 
 ## 📬 Connect
 
--   **Portfolio:** https://its-areebarchives.vercel.app/
--   **GitHub:** https://github.com/MdAreeb01
--   **LinkedIn:** https://www.linkedin.com/in/mohd-areeb1201
--   **Instagram:** https://instagram.com/\_\_areeb_28\_
+<p align="center">
+  <a href="https://its-areebarchives.vercel.app/">🌐 Portfolio</a> •
+  <a href="https://www.linkedin.com/in/mohd-areeb1201">💼 LinkedIn</a> •
+  <a href="https://www.instagram.com/__areeb_28_/">📸 Instagram</a> •
+  <a href="mailto:areebak12323@gmail.com">📧 Email</a>
+</p>
 
 ------------------------------------------------------------------------
 
