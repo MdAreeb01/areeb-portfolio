@@ -151,7 +151,7 @@ function ContactCard({ social }: { social: SocialLink }) {
         rotateY: tiltEnabled ? rotateY : 0,
         transformPerspective: 900,
       }}
-      className="group relative flex h-full flex-col justify-between overflow-hidden rounded-2xl border border-[#D7E2EA]/15 bg-[#D7E2EA]/5 px-5 py-6 backdrop-blur-md transition-[border-color,background-color,box-shadow] duration-300 ease-out hover:border-[#D7E2EA]/30 hover:bg-[#D7E2EA]/10 hover:shadow-[0_18px_40px_-20px_rgba(0,0,0,0.75)] focus-visible:border-[#D7E2EA]/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#D7E2EA]/40 sm:px-6"
+      className="group relative flex h-full min-w-0 flex-col justify-between overflow-hidden rounded-2xl border border-[#D7E2EA]/15 bg-[#D7E2EA]/5 px-5 py-6 backdrop-blur-md transition-[border-color,background-color,box-shadow] duration-300 ease-out hover:border-[#D7E2EA]/30 hover:bg-[#D7E2EA]/10 hover:shadow-[0_18px_40px_-20px_rgba(0,0,0,0.75)] focus-visible:border-[#D7E2EA]/40 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#D7E2EA]/40 sm:px-6"
     >
       {/* inner top edge highlight — purely decorative */}
       <span
@@ -180,7 +180,7 @@ function ContactCard({ social }: { social: SocialLink }) {
         <span className="text-[0.65rem] font-light uppercase tracking-[0.2em] text-[#D7E2EA]/50">
           {social.label}
         </span>
-        <span className="break-all text-sm font-medium text-[#D7E2EA] transition-colors duration-300 group-hover:text-white sm:text-base">
+        <span className="[overflow-wrap:anywhere] text-sm font-medium text-[#D7E2EA] transition-colors duration-300 group-hover:text-white sm:text-base">
           {social.handle}
         </span>
       </div>
@@ -192,7 +192,7 @@ export function ContactSection() {
   return (
     <section
       id="contact"
-      className="relative scroll-mt-0 overflow-hidden rounded-t-[40px] px-5 pb-20 pt-32 sm:rounded-t-[50px] sm:px-8 sm:pb-24 sm:pt-40 md:rounded-t-[60px] md:px-10 md:pb-32 md:pt-64"
+      className="relative scroll-mt-0 overflow-hidden rounded-t-[40px] px-5 pb-16 pt-16 sm:rounded-t-[50px] sm:px-8 sm:pb-20 sm:pt-20 md:rounded-t-[60px] md:px-10 md:pb-24 md:pt-24"
       style={{ backgroundColor: "#0C0C0C" }}
     >
       <div className="mx-auto flex max-w-5xl flex-col items-center gap-12 sm:gap-16 md:gap-20">
@@ -216,7 +216,7 @@ export function ContactSection() {
         </FadeIn>
 
         <FadeIn delay={0.2} y={30} className="w-full">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:gap-5">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4 xl:gap-5">
             {socials.map((social) => (
               <ContactCard key={social.label} social={social} />
             ))}
@@ -224,7 +224,7 @@ export function ContactSection() {
         </FadeIn>
 
         <FadeIn delay={0.25} y={20} className="w-full">
-          <div className="flex flex-col items-center justify-between gap-4 border-t border-[#D7E2EA]/15 pt-8 sm:flex-row">
+          <div className="flex flex-col items-center justify-between gap-4 border-t border-[#D7E2EA]/15 pt-8 text-center sm:flex-row sm:text-left">
             <span className="text-xs font-light text-[#D7E2EA]/40 sm:text-sm">
               © 2026 Areeb — Data Analyst & AI/ML Enthusiast
             </span>

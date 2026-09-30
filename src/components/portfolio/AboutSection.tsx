@@ -23,7 +23,16 @@ type SkillObjectConfig = {
   id: string;
   src: string;
   label: string;
+  /**
+   * Positioning of the object's wrapper. Below `xl` the object sits in a normal
+   * flow "rail" above/below the copy (half of the rail each); from `xl` up it is
+   * absolutely positioned around the copy exactly like the original layout.
+   */
   wrapperClassName: string;
+  /** Fluid image width used while the object lives in a rail (below `xl`). */
+  imageClassName: string;
+  /** Which rail the object belongs to below `xl`. */
+  rail: "top" | "bottom";
   labelPosition: "top" | "bottom";
   entrance: { x: number; y: number; delay: number; duration: number };
   float: { y: number; x: number; rotate: number; duration: number; delay: number };
@@ -38,7 +47,9 @@ const SKILL_OBJECTS: SkillObjectConfig[] = [
     src: "/about/dataanalytics.png",
     label: "Data Analytics",
     wrapperClassName:
-      "absolute top-[4%] left-[1%] sm:left-[2%] md:left-[4%] w-[100px] sm:w-[160px] md:w-[210px]",
+      "relative w-1/2 xl:absolute xl:top-[4%] xl:left-[4%] xl:w-[210px]",
+    imageClassName: "w-[clamp(96px,24vw,210px)] xl:w-full",
+    rail: "top",
     labelPosition: "bottom",
     entrance: { x: -80, y: 0, delay: 0.35, duration: 0.9 },
     float: { y: 9, x: 3, rotate: 1.5, duration: 7.5, delay: 0 },
@@ -50,7 +61,9 @@ const SKILL_OBJECTS: SkillObjectConfig[] = [
     src: "/about/python.png",
     label: "Python",
     wrapperClassName:
-      "absolute top-[4%] right-[1%] sm:right-[2%] md:right-[4%] w-[100px] sm:w-[160px] md:w-[210px]",
+      "relative w-1/2 xl:absolute xl:top-[4%] xl:right-[4%] xl:w-[210px]",
+    imageClassName: "w-[clamp(96px,24vw,210px)] xl:w-full",
+    rail: "top",
     labelPosition: "bottom",
     entrance: { x: 80, y: 0, delay: 0.45, duration: 0.9 },
     float: { y: 7, x: -4, rotate: -1.8, duration: 6.5, delay: 0.8 },
@@ -62,7 +75,9 @@ const SKILL_OBJECTS: SkillObjectConfig[] = [
     src: "/about/aiml.png",
     label: "AI / Machine Learning",
     wrapperClassName:
-      "absolute bottom-[8%] left-[3%] sm:left-[6%] md:left-[10%] w-[84px] sm:w-[140px] md:w-[180px]",
+      "relative w-1/2 xl:absolute xl:bottom-[8%] xl:left-[10%] xl:w-[180px]",
+    imageClassName: "w-[clamp(84px,21vw,180px)] xl:w-full",
+    rail: "bottom",
     labelPosition: "top",
     entrance: { x: -80, y: 0, delay: 0.55, duration: 0.9 },
     float: { y: 10, x: 0, rotate: 2, duration: 8.5, delay: 1.4 },
@@ -74,7 +89,9 @@ const SKILL_OBJECTS: SkillObjectConfig[] = [
     src: "/about/sql.png",
     label: "MySQL",
     wrapperClassName:
-      "absolute bottom-[8%] right-[3%] sm:right-[6%] md:right-[10%] w-[108px] sm:w-[170px] md:w-[220px]",
+      "relative w-1/2 xl:absolute xl:bottom-[8%] xl:right-[10%] xl:w-[220px]",
+    imageClassName: "w-[clamp(104px,27vw,220px)] xl:w-full",
+    rail: "bottom",
     labelPosition: "top",
     entrance: { x: 80, y: 0, delay: 0.65, duration: 0.9 },
     float: { y: 8, x: 4, rotate: -1.6, duration: 9, delay: 0.5 },
@@ -103,10 +120,10 @@ type PortraitConfig = {
   depth: number;
 };
 
-// Absolutely positioned beside the copy — only shown once there's room (lg+).
+// Absolutely positioned beside the copy — only shown once there's room (xl+).
 const PORTRAIT_DESKTOP: PortraitConfig = {
   wrapperClassName:
-    "hidden lg:block absolute top-[45%] right-[8%] xl:right-[12%] 2xl:right-[14%] -translate-y-[40%] w-[150px] xl:w-[200px] 2xl:w-[220px]",
+    "hidden xl:block absolute top-[45%] right-[12%] 2xl:right-[14%] -translate-y-[40%] w-[200px] 2xl:w-[220px]",
   entrance: { x: 70, y: 0, delay: 0.5, duration: 1 },
   float: { y: 10, x: 4, rotate: 0, duration: 8, delay: 0.3 },
   parallaxStrength: 10,
@@ -114,9 +131,9 @@ const PORTRAIT_DESKTOP: PortraitConfig = {
   depth: 30,
 };
 
-// In-flow, centred below the bio content — guarantees no overlap below lg.
+// In-flow, centred below the bio content — guarantees no overlap below xl.
 const PORTRAIT_MOBILE: PortraitConfig = {
-  wrapperClassName: "block lg:hidden relative w-[170px] sm:w-[200px] mx-auto",
+  wrapperClassName: "block xl:hidden relative w-[170px] sm:w-[200px] mx-auto",
   entrance: { x: 0, y: 30, delay: 0.3, duration: 0.9 },
   float: { y: 6, x: 0, rotate: 0.6, duration: 7, delay: 0 },
   parallaxStrength: 0,
@@ -504,7 +521,7 @@ function DepthParticles({
 
 function SkillLabel({ text }: { text: string }) {
   return (
-    <span className="select-none whitespace-nowrap rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[9px] sm:text-[10px] uppercase tracking-[0.18em] text-[#D7E2EA]/60 backdrop-blur-sm transition-colors duration-500 group-hover:border-white/20 group-hover:text-[#D7E2EA]/95">
+    <span className="select-none whitespace-nowrap rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-[9px] sm:text-[10px] uppercase tracking-[0.14em] sm:tracking-[0.18em] text-[#D7E2EA]/60 backdrop-blur-sm transition-colors duration-500 group-hover:border-white/20 group-hover:text-[#D7E2EA]/95">
       {text}
     </span>
   );
@@ -584,7 +601,7 @@ function FloatingSkillObject({
             <img
               src={config.src}
               alt=""
-              className="h-auto w-full transition duration-500 ease-out group-hover:brightness-110 group-hover:drop-shadow-[0_0_22px_rgba(215,226,234,0.22)]"
+              className={`h-auto ${config.imageClassName} transition duration-500 ease-out group-hover:brightness-110 group-hover:drop-shadow-[0_0_22px_rgba(215,226,234,0.22)]`}
             />
             {config.labelPosition === "bottom" && <SkillLabel text={config.label} />}
           </motion.div>
@@ -819,7 +836,7 @@ export function AboutSection() {
       ref={sectionRef}
       onMouseMove={handlePointerMove}
       onMouseLeave={handlePointerLeave}
-      className="relative min-h-screen flex flex-col items-center justify-center px-5 sm:px-8 md:px-10 py-20 overflow-hidden"
+      className="relative min-h-[100svh] flex flex-col items-center justify-center px-5 sm:px-8 md:px-10 py-14 sm:py-16 xl:py-20 overflow-hidden"
       style={{ backgroundColor: "#0C0C0C" }}
     >
       {/* Cinematic depth field */}
@@ -851,17 +868,25 @@ export function AboutSection() {
         }}
       />
 
-      {SKILL_OBJECTS.map((config) => (
-        <FloatingSkillObject
-          key={config.id}
-          config={config}
-          canHover={canHover}
-          reduceMotion={reduceMotion}
-          springX={springX}
-          springY={springY}
-          progress={progress}
-        />
-      ))}
+      {/*
+        Skill objects. Below xl they sit in two in-flow rails (above the heading /
+        below the buttons) so they can never collide with the copy or the portrait.
+        From xl up the rail wrappers disappear (display: contents) and each object
+        is positioned absolutely around the copy, as in the original layout.
+      */}
+      <div className="relative z-[5] mb-6 sm:mb-8 flex w-full justify-between xl:contents">
+        {SKILL_OBJECTS.filter((config) => config.rail === "top").map((config) => (
+          <FloatingSkillObject
+            key={config.id}
+            config={config}
+            canHover={canHover}
+            reduceMotion={reduceMotion}
+            springX={springX}
+            springY={springY}
+            progress={progress}
+          />
+        ))}
+      </div>
 
       {/* Portrait — desktop/laptop: floats beside the copy, right of centre */}
       <PortraitFrame
@@ -920,6 +945,20 @@ export function AboutSection() {
             <ResumeButton />
           </FadeIn>
         </div>
+      </div>
+
+      <div className="relative z-[5] mt-8 sm:mt-10 flex w-full justify-between xl:contents">
+        {SKILL_OBJECTS.filter((config) => config.rail === "bottom").map((config) => (
+          <FloatingSkillObject
+            key={config.id}
+            config={config}
+            canHover={canHover}
+            reduceMotion={reduceMotion}
+            springX={springX}
+            springY={springY}
+            progress={progress}
+          />
+        ))}
       </div>
     </section>
   );
