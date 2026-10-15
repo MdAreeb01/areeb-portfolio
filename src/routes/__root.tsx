@@ -77,14 +77,50 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
+      { title: "Areeb | Data Scientist & AI/ML Developer" },
+      {
+        name: "description",
+        content:
+          "Portfolio of Areeb — Data Scientist and AI/ML Developer building intelligent solutions with Python, Machine Learning, Data Analytics, SQL, Power BI, and modern AI technologies.",
+      },
+      {
+        name: "author",
+        content: "Areeb",
+      },
+      {
+        property: "og:title",
+        content: "Areeb | Data Scientist & AI/ML Developer",
+      },
+      {
+        property: "og:description",
+        content:
+          "Explore Areeb's portfolio of data analytics, machine learning, AI, Python, and real-world projects.",
+      },
+      {
+        property: "og:type",
+        content: "website",
+      },
+      {
+        property: "og:image",
+        content: "/Myavatar.png",
+      },
+      {
+        name: "twitter:card",
+        content: "summary_large_image",
+      },
+      {
+        name: "twitter:title",
+        content: "Areeb | Data Scientist & AI/ML Developer",
+      },
+      {
+        name: "twitter:description",
+        content:
+          "Data Science, Machine Learning, AI, Python, Data Analytics, and real-world projects.",
+      },
+      {
+        name: "twitter:image",
+        content: "/Myavatar.png",
+      },
     ],
     links: [
       {

@@ -14,6 +14,7 @@ import {
 import { FadeIn } from "./FadeIn";
 import { AnimatedText } from "./AnimatedText";
 import { ContactButton, ResumeButton } from "./Buttons";
+import { PortfolioChat } from "./PortfolioChat";
 
 // ---------------------------------------------------------------------------
 // Skill object configuration
@@ -960,6 +961,8 @@ export function AboutSection() {
           />
         ))}
       </div>
+
+      <PortfolioChat />
     </section>
   );
 }
