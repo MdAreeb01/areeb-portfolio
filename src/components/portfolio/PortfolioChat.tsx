@@ -206,6 +206,11 @@ const markdownComponents: Components = {
         href={safeHref}
         target={isExternal ? "_blank" : undefined}
         rel={isExternal ? "noopener noreferrer" : undefined}
+        download={
+          /^\/[^/].*\.(pdf|jpe?g)$/i.test(safeHref)
+            ? true
+            : undefined
+        }
         className={LINK_CLASS}
       >
         <span className="min-w-0 [overflow-wrap:anywhere]">{children}</span>
@@ -253,6 +258,8 @@ export function PortfolioChat() {
   const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(false);
+  const [typingMessageId, setTypingMessageId] = useState<number | null>(null);
+  const [typedLength, setTypedLength] = useState(0);  
   const [status, setStatus] = useState<Status>("idle");
   const [messages, setMessages] = useState<Message[]>([
     { role: "assistant", content: WELCOME },
@@ -264,11 +271,39 @@ export function PortfolioChat() {
   const bottomRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
+  const typingContent =
+    typingMessageId !== null
+      ? messages[typingMessageId]?.content ?? ""
+      : "";
+
+  useEffect(() => {
+    if (typingMessageId === null) return;
+
+    if (reduceMotion) {
+      setTypedLength(typingContent.length);
+      setTypingMessageId(null);
+      return;
+    }
+
+    if (typedLength >= typingContent.length) {
+      setTypingMessageId(null);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      setTypedLength((length) =>
+        Math.min(length + 3, typingContent.length),
+      );
+    }, 12);
+
+    return () => window.clearTimeout(timer);
+  }, [typingMessageId, typedLength, typingContent, reduceMotion]);
+
   useEffect(() => {
     bottomRef.current?.scrollIntoView({
       behavior: reduceMotion ? "auto" : "smooth",
     });
-  }, [messages, loading, open, reduceMotion]);
+  }, [messages, loading, open, reduceMotion, typedLength]);
 
   useEffect(() => {
     // Skip auto-focus on phones: it would pop the keyboard open immediately
@@ -332,10 +367,18 @@ export function PortfolioChat() {
       }
 
       setStatus("ok");
-      setMessages((previous) => [
-        ...previous,
-        { role: "assistant", content: data.reply! },
-      ]);
+
+      setMessages((previous) => {
+        const next = [
+          ...previous,
+          { role: "assistant" as const, content: data.reply! },
+        ];
+
+        setTypingMessageId(next.length - 1);
+        setTypedLength(0);
+
+        return next;
+      });
     } catch (error) {
       const message =
         error instanceof Error
@@ -391,14 +434,15 @@ export function PortfolioChat() {
                   {...(reduceMotion
                     ? {}
                     : { whileHover: { y: -3, scale: 1.02 }, whileTap: { scale: 0.97 } })}
-                  className={`fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-[max(1.25rem,env(safe-area-inset-right))] z-[80] inline-flex items-center gap-2.5 rounded-full border border-white/[0.16] border-t-white/[0.3] bg-[linear-gradient(145deg,rgba(46,52,58,0.94),rgba(16,18,21,0.96))] py-2.5 pl-2.5 pr-5 text-sm font-medium tracking-tight text-[#E3ECF3] shadow-[0_14px_38px_rgba(0,0,0,0.5),0_0_28px_rgba(190,215,235,0.1),inset_0_1px_0_rgba(255,255,255,0.16)] backdrop-blur-sm transition-[border-color,box-shadow] duration-300 hover:border-white/30 hover:shadow-[0_18px_44px_rgba(0,0,0,0.55),0_0_34px_rgba(120,200,240,0.2),inset_0_1px_0_rgba(255,255,255,0.2)] sm:bottom-7 sm:right-7 ${FOCUS_RING}`}
+                  className={`fixed bottom-[max(1.25rem,env(safe-area-inset-bottom))] right-[max(1.25rem,env(safe-area-inset-right))] z-[80] inline-flex items-center gap-1.5 rounded-full border border-white/[0.16] border-t-white/[0.3] bg-[linear-gradient(145deg,rgba(46,52,58,0.94),rgba(16,18,21,0.96))] py-1.5 pl-1.5 pr-3 text-xs sm:gap-2.5 sm:py-2.5 sm:pl-2.5 sm:pr-5 sm:text-sm font-medium tracking-tight text-[#E3ECF3] shadow-[0_14px_38px_rgba(0,0,0,0.5),0_0_28px_rgba(190,215,235,0.1),inset_0_1px_0_rgba(255,255,255,0.16)] backdrop-blur-sm transition-[border-color,box-shadow] duration-300 hover:border-white/30 hover:shadow-[0_18px_44px_rgba(0,0,0,0.55),0_0_34px_rgba(120,200,240,0.2),inset_0_1px_0_rgba(255,255,255,0.2)] sm:bottom-7 sm:right-7 ${FOCUS_RING}`}
                   aria-label="Open Areeb AI chat"
                 >
             <span
               aria-hidden="true"
-              className="grid size-8 place-items-center rounded-full border border-white/[0.14] bg-gradient-to-br from-white/[0.18] to-white/[0.03] text-cyan-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]"
+              className="grid size-7 sm:size-8 place-items-center rounded-full border border-white/[0.14] bg-gradient-to-br from-white/[0.18] to-white/[0.03] text-cyan-100 shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]"
             >
-              <Sparkles size={16} />
+              <Sparkles size={14} className="sm:hidden" />
+              <Sparkles size={16} className="hidden sm:block" />
             </span>
             Ask Areeb AI
           </motion.button>
@@ -494,7 +538,9 @@ export function PortfolioChat() {
                         remarkPlugins={[remarkGfm]}
                         components={markdownComponents}
                       >
-                        {message.content}
+                        {index === typingMessageId
+                          ? message.content.slice(0, typedLength)
+                          : message.content}
                       </ReactMarkdown>
                     </div>
                   </motion.div>
@@ -522,16 +568,46 @@ export function PortfolioChat() {
                 )}
 
                 {loading && (
-                  <div
+                  <motion.div
                     role="status"
-                    className="inline-flex items-center gap-2 rounded-full border border-white/[0.1] bg-white/[0.04] px-3 py-1.5 text-xs text-white/60"
+                    aria-label="Areeb AI is thinking"
+                    initial={{ opacity: 0, y: 4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="inline-flex items-center gap-2.5 overflow-hidden rounded-full border border-white/[0.12] bg-white/[0.045] px-3.5 py-2 text-xs shadow-[inset_0_1px_0_rgba(255,255,255,0.07),0_0_18px_rgba(100,190,235,0.06)]"
                   >
-                    <LoaderCircle
-                      size={15}
-                      className="animate-spin text-cyan-200/80"
+                    <Sparkles
+                      size={14}
+                      className="shrink-0 text-cyan-100/80"
                     />
-                    Thinking...
-                  </div>
+
+                    <motion.span
+                      className="bg-[linear-gradient(90deg,rgba(215,226,234,0.45)_0%,rgba(255,255,255,1)_45%,rgba(125,211,252,0.95)_55%,rgba(215,226,234,0.45)_100%)] bg-clip-text font-medium text-transparent [background-size:200%_100%]"
+                      {...!reduceMotion && {
+                        animate: { backgroundPosition: ["100% 50%", "-100% 50%"] },
+                        transition: { duration: 2, ease: "linear", repeat: Infinity }
+                      }}
+                    >
+                      Thinking
+                    </motion.span>
+
+                    <span className="inline-flex items-center gap-1" aria-hidden="true">
+                      {[0, 1, 2].map((dot) => (
+                        <motion.span
+                          key={dot}
+                          className="size-1 rounded-full bg-cyan-200"
+                          {...!reduceMotion && {
+                            animate: { opacity: [0.3, 1, 0.3], y: [0, -2, 0] },
+                            transition: {
+                              duration: 1,
+                              repeat: Infinity,
+                              delay: dot * 0.16,
+                              ease: "easeInOut",
+                            }
+                          }}
+                        />
+                      ))}
+                    </span>
+                  </motion.div>
                 )}
 
                 <div ref={bottomRef} />
