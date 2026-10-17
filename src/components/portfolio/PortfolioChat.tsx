@@ -152,6 +152,28 @@ function useChatViewportVars(active: boolean): CSSProperties {
 /*  Markdown                                                                  */
 /* -------------------------------------------------------------------------- */
 
+function extractCodeText(node: React.ReactNode): string {
+  if (typeof node === "string" || typeof node === "number") {
+    return String(node);
+  }
+
+  if (Array.isArray(node)) {
+    return node.map(extractCodeText).join("");
+  }
+
+  if (
+    node &&
+    typeof node === "object" &&
+    "props" in node
+  ) {
+    return extractCodeText(
+      (node as React.ReactElement<{ children?: React.ReactNode }>).props.children
+    );
+  }
+
+  return "";
+}
+
 // Defined once at module level so the renderers keep a stable identity.
 const markdownComponents: Components = {
   h1: ({ children }) => (
@@ -219,11 +241,31 @@ const markdownComponents: Components = {
     );
   },
   // Block code is <pre><code>; the [&_code] resets strip the inline-code chrome.
-  pre: ({ children }) => (
-    <pre className="my-2 overflow-x-auto rounded-xl border border-white/10 bg-black/45 p-3 text-xs leading-relaxed text-[#CFE0EC] shadow-[inset_0_2px_8px_rgba(0,0,0,0.4)] last:mb-0 [&_code]:border-0 [&_code]:bg-transparent [&_code]:p-0">
-      {children}
-    </pre>
-  ),
+  
+  pre: ({ children }) => {
+    const code = extractCodeText(children);
+
+    return (
+      <div className="group relative my-2">
+        <button
+          type="button"
+          onClick={() => {
+            void navigator.clipboard.writeText(code);
+          }}
+          aria-label="Copy code"
+          title="Copy code"
+          className="absolute right-2 top-2 z-10 rounded-md border border-white/15 bg-black/60 px-2 py-1 text-[10px] text-white/70 opacity-100 transition hover:border-cyan-200/40 hover:bg-white/10 hover:text-white sm:opacity-0 sm:group-hover:opacity-100 sm:focus:opacity-100"
+        >
+          Copy
+        </button>
+
+        <pre className="overflow-x-auto rounded-xl border border-white/10 bg-black/45 p-3 pr-16 text-xs leading-relaxed text-[#CFE0EC] shadow-[inset_0_2px_8px_rgba(0,0,0,0.4)] last:mb-0 [&_code]:border-0 [&_code]:bg-transparent [&_code]:p-0">
+          {children}
+        </pre>
+      </div>
+    );
+  },
+
   code: ({ children, className }) => (
     <code
       className={`rounded-md border border-white/10 bg-black/40 px-1.5 py-0.5 font-mono text-[0.85em] text-[#CFE0EC] ${className ?? ""}`}
@@ -292,9 +334,9 @@ export function PortfolioChat() {
 
     const timer = window.setTimeout(() => {
       setTypedLength((length) =>
-        Math.min(length + 3, typingContent.length),
+        Math.min(length + 8, typingContent.length),
       );
-    }, 12);
+    }, 8);
 
     return () => window.clearTimeout(timer);
   }, [typingMessageId, typedLength, typingContent, reduceMotion]);
